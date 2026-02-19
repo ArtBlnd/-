@@ -284,15 +284,17 @@ Qed.
 (*                                                   *)
 (*  No dimension contains itself as an entity.       *)
 (*  reify d lives in native_dim (reify d).           *)
-(*  If native_dim (reify d) ≠ d, no self-loop.       *)
+(*  reify_dim d ≠ d: projection is irreversible,     *)
+(*  so the reify chain cannot cycle back.            *)
 (* ================================================ *)
 
+Axiom reify_dim_neq : forall d : Dimension, reify_dim d <> d.
+
 Theorem no_self_containment :
-  (forall d : Dimension, reify_dim d <> d) ->
   forall d : Dimension,
     native_dim (reify d) <> d.
 Proof.
-  intros Hmeta d. exact (Hmeta d).
+  intro d. exact (reify_dim_neq d).
 Qed.
 
 (* ================================================ *)
@@ -436,11 +438,10 @@ Proof.
 Qed.
 
 Theorem level_separation :
-  (forall d : Dimension, reify_dim d <> d) ->
   forall d : Dimension, forall n : nat,
     tower d (S n) <> tower d n.
 Proof.
-  intros Hmeta d n. simpl. apply Hmeta.
+  intros d n. simpl. apply reify_dim_neq.
 Qed.
 
 (* NOTE ON TOWER CYCLES:
