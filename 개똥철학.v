@@ -510,16 +510,17 @@ Qed.
 (* ================================================ *)
 
 (* NOTE ON EMPTY DOMAINS:
-   No axiom guarantees that any entity or dimension
-   exists. Entity and Dimension could be empty types.
-   If empty, all forall-theorems are vacuously true.
-   The framework describes what follows IF something
-   exists. It does not claim anything must exist. *)
+   No axiom forces non-emptiness.
+   The framework is silent when nothing exists. *)
 
 (* NOTE ON SINGLETONS:
    If only one entity exists in a dimension,
    existence_is_difference gives {a = a} + {a <> a},
-   which is trivially left (reflexivity). *)
+   which is trivially left (reflexivity).
+   No difference, therefore not an independent
+   dimension — its entity merges into a coarser
+   dimension. If no coarser dimension exists,
+   it is indistinguishable from nothing. *)
 
 (* NOTE ON reify_injective:
    This is the one axiom whose necessity is debatable.
