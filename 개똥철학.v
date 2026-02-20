@@ -565,10 +565,10 @@ Qed.
    dim_le is reflexive and transitive but NOT
    antisymmetric. This is deliberate.
 
-   d1 <= d2 and d2 <= d1 does NOT imply d1 = d2.
-   Instead it means d1 ≈ d2: dimensionally
-   equivalent. Bidirectional projection with no
-   information loss.
+   d1 <= d2 says only that projection is possible.
+   Whether information is lost is determined by
+   the reverse: if also d2 <= d1, no loss (dim_equiv).
+   If not, the projection is irreversible.
 
    Antisymmetry would collapse dim_equiv with
    propositional equality. The preorder keeps
