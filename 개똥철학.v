@@ -271,6 +271,11 @@ Qed.
 (*  Therefore we axiomatize it directly.            *)
 (* ================================================ *)
 
+(* Same principle as existence_is_difference
+   applied at the dimension level:
+   a round-trip with no information loss
+   means no difference, therefore one. *)
+
 Axiom tower_acyclic : forall d : Dimension, forall n m : nat,
   tower d n = tower d m -> n = m.
 
