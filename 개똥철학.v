@@ -158,14 +158,12 @@ Defined.
 (*  native_dim (reify d): the dimension where       *)
 (*  that entity-view lives. This is not above       *)
 (*  or below d — just somewhere else.               *)
-(*  It has no special name because it needs none.   *)
-(*  It is simply where reify d happens to land.     *)
 (*                                                  *)
 (*  Think of reify as looking through a window:     *)
 (*  - project lets you view an entity through a     *)
 (*    coarser window (going to a coarser dimension) *)
 (*  - reify lets you view a dimension through the   *)
-(*    entity window (making it comparable)          *)
+(*    entity window (making it comparable)           *)
 (*  Both are just viewing through a window.         *)
 (* ================================================ *)
 
@@ -275,15 +273,42 @@ Proof.
 Qed.
 
 (* ================================================ *)
-(*  NO SELF-CONTAINMENT                             *)
+(*  NO SELF-CONTAINMENT — TOWER ACYCLICITY          *)
 (*                                                  *)
-(*  No dimension contains itself as an entity.      *)
-(*  reify d lives in native_dim (reify d).          *)
-(*  reify_dim d ≠ d: projection is irreversible,    *)
-(*  so the reify chain cannot cycle back.           *)
+(*  The reify tower never cycles back.              *)
+(*                                                  *)
+(*  Philosophical justification:                    *)
+(*  If a tower could cycle (d1 → d2 → ... → d1),   *)
+(*  the round-trip through windows preserves all    *)
+(*  information — total loss is zero. But zero      *)
+(*  loss means the dimensions are equivalent, i.e.  *)
+(*  the same. Yet each step must differ             *)
+(*  (each window changes perspective). Contradiction.*)
+(*                                                  *)
+(*  This cannot be derived from other axioms:       *)
+(*  reify produces something DIFFERENT, but          *)
+(*  "different" has no direction — it could gain,   *)
+(*  lose, or simply change information. Without     *)
+(*  monotonicity, cycle-freedom is not provable.    *)
+(*                                                  *)
+(*  Therefore we axiomatize it directly:            *)
+(*  the tower from any starting dimension never     *)
+(*  visits the same level twice.                    *)
 (* ================================================ *)
 
-Axiom reify_dim_neq : forall d : Dimension, reify_dim d <> d.
+Axiom tower_acyclic : forall d : Dimension, forall n m : nat,
+  tower d n = tower d m -> n = m.
+
+(* No self-containment: derived from tower_acyclic.
+   Previously an axiom (reify_dim_neq), now a theorem. *)
+Theorem reify_dim_neq : forall d : Dimension, reify_dim d <> d.
+Proof.
+  intros d H.
+  assert (Ht : tower d 1 = tower d 0).
+  { simpl. exact H. }
+  apply (tower_acyclic d 1 0) in Ht.
+  discriminate Ht.
+Qed.
 
 Theorem no_self_containment :
   forall d : Dimension,
@@ -291,6 +316,45 @@ Theorem no_self_containment :
 Proof.
   intro d. exact (reify_dim_neq d).
 Qed.
+
+Theorem level_separation :
+  forall d : Dimension, forall n : nat,
+    tower d (S n) <> tower d n.
+Proof.
+  intros d n H.
+  apply (tower_acyclic d (S n) n) in H.
+  induction n.
+  - discriminate H.
+  - injection H. exact IHn.
+Qed.
+
+(* NOTE ON TOWER CYCLES:
+   level_separation forbids consecutive repeats:
+     tower d (S n) ≠ tower d n.
+
+   tower_acyclic forbids ALL cycles of any length:
+     tower d n = tower d m → n = m.
+
+   This means:
+     reify_dim d1 = d2  and  reify_dim d2 = d1
+   is impossible. If it held:
+     tower d1 0 = d1
+     tower d1 1 = reify_dim d1 = d2
+     tower d1 2 = reify_dim d2 = d1 = tower d1 0
+   so tower d1 2 = tower d1 0, giving 2 = 0.
+   Contradiction.
+
+   Philosophical argument: a cycle means a
+   round-trip through windows with zero total
+   information change. Zero change means the
+   dimensions are the same. But reify_dim_neq
+   says each step differs. Contradiction.
+
+   This argument is sound but not formally
+   derivable from other axioms, because reify
+   has no monotonic direction — it can gain,
+   lose, or simply change information.
+   Hence tower_acyclic is an axiom. *)
 
 (* ================================================ *)
 (*  DIMENSION COMPARISON IS CONTEXTUAL              *)
@@ -446,25 +510,6 @@ Proof.
   - exact Hm.
   - rewrite Ha in Hd. exact Hd.
 Qed.
-
-Theorem level_separation :
-  forall d : Dimension, forall n : nat,
-    tower d (S n) <> tower d n.
-Proof.
-  intros d n. simpl. apply reify_dim_neq.
-Qed.
-
-(* NOTE ON TOWER CYCLES:
-   level_separation only forbids: tower d (S n) = tower d n
-   i.e., consecutive levels differ. But longer cycles
-   are not forbidden:
-     reify_dim d1 = d2  and  reify_dim d2 = d1
-   would make the tower oscillate: d1, d2, d1, d2, ...
-
-   This is intentional. The framework does not impose
-   "infinite distinct levels" — it only says consecutive
-   steps differ. Whether longer cycles occur is a
-   property of specific models, not the framework. *)
 
 (* ================================================  *)
 (*  NOTE ON RELATIONS                                *)
@@ -681,8 +726,9 @@ Qed.
 (*    project_self         (identity projection)     *)
 (*    existence_is_difference  (THE axiom)           *)
 (*    reify_injective      (distinct dims ≠ entities)*)
+(*    tower_acyclic        (reify tower never cycles)*)
 (*                                                   *)
-(*  That's 7 axioms, 1 philosophical, 6 structural.  *)
+(*  That's 8 axioms, 1 philosophical, 7 structural.  *)
 (*                                                   *)
 (*  Definitions (1):                                 *)
 (*    reify_dim d := native_dim (reify d)            *)
@@ -693,7 +739,9 @@ Qed.
 (*    - entity → domain + operator                   *)
 (*    - dimension → domain + operator                *)
 (*    - every tower level → domain + operator        *)
-(*    - no self-containment                          *)
+(*    - reify_dim_neq (from tower_acyclic)           *)
+(*    - no self-containment (from reify_dim_neq)     *)
+(*    - level separation (from tower_acyclic)        *)
 (*    - dimension comparison is contextual           *)
 (*    - projection reflects difference               *)
 (*    - projection does NOT preserve difference      *)
@@ -701,7 +749,6 @@ Qed.
 (*    - native identity is absolute                  *)
 (*    - comparability is equivalence relation        *)
 (*    - self-reference: coarsening or impossible     *)
-(*    - level separation                             *)
 (*    - THE DICHOTOMY (framework-specific):          *)
 (*      at any dimension, existence_is_difference    *)
 (*      forces Case A (differ) or Case B (collapse)  *)
@@ -741,7 +788,15 @@ Qed.
    different from something in a coarser dimension
    that contains other entities. Existence requires
    at least two. This is not an axiom — it follows
-   from "existence = difference." *)
+   from "existence = difference."
+
+   More precisely: a singleton dimension is like
+   Rust's Never (!) type — the type exists but
+   cannot be inhabited. Existence requires
+   difference, difference requires comparison,
+   comparison requires at least two. A singleton
+   dimension does not "degenerate" — it is simply
+   unreachable as a site of existence from the start. *)
 
 (* NOTE ON reify_injective:
    This is the one axiom whose necessity is debatable.
@@ -765,6 +820,29 @@ Qed.
    it philosophically unavoidable. If two dimensions
    produce the same entity, they were never two
    dimensions to begin with. *)
+
+(* NOTE ON tower_acyclic:
+   Previously, no-self-containment was axiomatized
+   directly as reify_dim_neq (reify_dim d ≠ d),
+   which only forbade 1-cycles. Longer cycles were
+   noted as "not forbidden."
+
+   The philosophical argument against all cycles:
+   A cycle d1 → d2 → ... → d1 means a round-trip
+   through windows with zero total information
+   change. Zero change means the dimensions are
+   the same. But each step must differ. Contradiction.
+
+   This argument is sound but not formally derivable
+   from other axioms. reify has no monotonic
+   direction — it can gain, lose, or simply change
+   information. Without monotonicity, the round-trip
+   argument has no formal anchor.
+
+   Therefore tower_acyclic is axiomatized directly.
+   It strictly generalizes reify_dim_neq, which is
+   now derived as a theorem. Net change: one axiom
+   replaced by a strictly stronger one. *)
 
 (* NOTE ON DIRECTIONALITY:
    native_dim (reify d) — where dimension d lives
@@ -877,8 +955,9 @@ Qed.
 (*    - The axiom system is consistent (has a model)  *)
 (*    - proj= does NOT imply native=                  *)
 (*    - native≠ does NOT imply proj≠                  *)
-(*    NOTE: needs update to v7 (remove references     *)
-(*    to meta_dimension and reify_placement).         *)
+(*    NOTE: needs update to v7 (add tower_acyclic     *)
+(*    witness — straightforward since the model has   *)
+(*    no cycles in its finite dimension set).         *)
 (* ================================================   *)
 
 (* ================================================   *)
@@ -911,4 +990,9 @@ Qed.
 (*      replaces both. One fewer parameter, one       *)
 (*      fewer axiom. Renamed meta_level to tower.     *)
 (*      Added design notes for future reference.      *)
+(*      Replaced reify_dim_neq axiom with             *)
+(*      tower_acyclic: strictly stronger (forbids     *)
+(*      all cycles, not just 1-cycles). reify_dim_neq *)
+(*      and level_separation now derived as theorems. *)
+(*      Updated singleton note with Never analogy.    *)
 (* ================================================   *)
