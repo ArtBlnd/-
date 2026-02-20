@@ -150,28 +150,16 @@ Defined.
 (* ================================================ *)
 (*  REIFICATION                                     *)
 (*                                                  *)
-(*  A dimension IS its operation.                   *)
-(*  The integers = ==|!= on integers.               *)
-(*                                                  *)
 (*  reify d: dimension d, viewed as an entity.      *)
 (*                                                  *)
 (*  native_dim (reify d): the dimension where       *)
 (*  that entity-view lives. This is not above       *)
 (*  or below d — just somewhere else.               *)
-(*                                                  *)
-(*  Think of reify as looking through a window:     *)
-(*  - project lets you view an entity through a     *)
-(*    coarser window (going to a coarser dimension) *)
-(*  - reify lets you view a dimension through the   *)
-(*    entity window (making it comparable)           *)
-(*  Both are just viewing through a window.         *)
 (* ================================================ *)
 
 Parameter reify : Dimension -> Entity.
 
-(* Different dimensions are different entities.
-   If they weren't distinguishable, they'd
-   collapse — existence is difference. *)
+(* Different dimensions are different entities. *)
 Axiom reify_injective :
   forall d1 d2, reify d1 = reify d2 -> d1 = d2.
 
@@ -180,11 +168,8 @@ Definition reify_dim (d : Dimension) : Dimension :=
   native_dim (reify d).
 
 (* ================================================ *)
-(*  THE CENTRAL META-THEOREM:                       *)
-(*  Existence guarantees domain + operator          *)
+(*  ENTITY → DOMAIN + OPERATOR                      *)
 (* ================================================ *)
-
-(* --- For entities --- *)
 
 Theorem entity_has_domain :
   forall a : Entity,
@@ -201,7 +186,9 @@ Proof.
   exact existence_is_difference.
 Qed.
 
-(* --- For dimensions (= operations) --- *)
+(* ================================================ *)
+(*  DIMENSION → DOMAIN + OPERATOR (via reify)       *)
+(* ================================================ *)
 
 Theorem dimension_has_domain :
   forall d : Dimension,
@@ -220,8 +207,6 @@ Proof.
   exact Hmeta.
 Qed.
 
-(* Corollary: dimension identity is decidable
-   when their reify_dims match *)
 Theorem dim_identity_decidable_at :
   forall d1 d2 : Dimension,
     reify_dim d1 = reify_dim d2 ->
@@ -233,7 +218,9 @@ Proof.
   - right. intro H. apply Hneq. rewrite H. reflexivity.
 Qed.
 
-(* --- For the reify_dim itself --- *)
+(* ================================================ *)
+(*  REIFY TOWER                                     *)
+(* ================================================ *)
 
 Theorem reify_dim_has_domain :
   forall d : Dimension,
@@ -242,8 +229,6 @@ Theorem reify_dim_has_domain :
 Proof.
   intro d. exists (reify_dim (reify_dim d)). reflexivity.
 Qed.
-
-(* --- For every level of the tower --- *)
 
 Fixpoint tower (d : Dimension) (n : nat) : Dimension :=
   match n with
@@ -277,30 +262,18 @@ Qed.
 (*                                                  *)
 (*  The reify tower never cycles back.              *)
 (*                                                  *)
-(*  Philosophical justification:                    *)
-(*  If a tower could cycle (d1 → d2 → ... → d1),   *)
-(*  the round-trip through windows preserves all    *)
-(*  information — total loss is zero. But zero      *)
-(*  loss means the dimensions are equivalent, i.e.  *)
-(*  the same. Yet each step must differ             *)
-(*  (each window changes perspective). Contradiction.*)
-(*                                                  *)
 (*  This cannot be derived from other axioms:       *)
-(*  reify produces something DIFFERENT, but          *)
+(*  reify produces something different, but         *)
 (*  "different" has no direction — it could gain,   *)
 (*  lose, or simply change information. Without     *)
 (*  monotonicity, cycle-freedom is not provable.    *)
 (*                                                  *)
-(*  Therefore we axiomatize it directly:            *)
-(*  the tower from any starting dimension never     *)
-(*  visits the same level twice.                    *)
+(*  Therefore we axiomatize it directly.            *)
 (* ================================================ *)
 
 Axiom tower_acyclic : forall d : Dimension, forall n m : nat,
   tower d n = tower d m -> n = m.
 
-(* No self-containment: derived from tower_acyclic.
-   Previously an axiom (reify_dim_neq), now a theorem. *)
 Theorem reify_dim_neq : forall d : Dimension, reify_dim d <> d.
 Proof.
   intros d H.
@@ -342,19 +315,7 @@ Qed.
      tower d1 1 = reify_dim d1 = d2
      tower d1 2 = reify_dim d2 = d1 = tower d1 0
    so tower d1 2 = tower d1 0, giving 2 = 0.
-   Contradiction.
-
-   Philosophical argument: a cycle means a
-   round-trip through windows with zero total
-   information change. Zero change means the
-   dimensions are the same. But reify_dim_neq
-   says each step differs. Contradiction.
-
-   This argument is sound but not formally
-   derivable from other axioms, because reify
-   has no monotonic direction — it can gain,
-   lose, or simply change information.
-   Hence tower_acyclic is an axiom. *)
+   Contradiction. *)
 
 (* ================================================ *)
 (*  DIMENSION COMPARISON IS CONTEXTUAL              *)
@@ -389,7 +350,7 @@ Proof.
 Qed.
 
 (* ================================================ *)
-(*  PART I: THE COMPARISON-INFORMATION TRADEOFF     *)
+(*  COMPARISON-INFORMATION TRADEOFF                 *)
 (* ================================================ *)
 
 Theorem coarsening_widens :
@@ -438,13 +399,6 @@ Qed.
 (* ================================================ *)
 (*  UNIVERSAL DIMENSION                             *)
 (*                                                  *)
-(*  If a universal dimension exists, every entity   *)
-(*  can be projected to it, and by                  *)
-(*  existence_is_difference, every pair becomes     *)
-(*  decidably equal or not. This is the dimension   *)
-(*  of MAXIMUM observable difference — the most     *)
-(*  pairs can be compared here.                     *)
-(*                                                  *)
 (*  The framework does not assert or deny its       *)
 (*  existence. dim_le is a preorder, not a lattice: *)
 (*  Top is not required.                            *)
@@ -482,7 +436,7 @@ Theorem comp_at_trans : forall a b c d,
 Proof. intros a b c d [Ha _] [_ Hc]. split; assumption. Qed.
 
 (* ================================================ *)
-(*  PART II: SELF-REFERENCE                         *)
+(*  SELF-REFERENCE                                  *)
 (* ================================================ *)
 
 Theorem self_reference_via_coarsening :
@@ -511,72 +465,17 @@ Proof.
   - rewrite Ha in Hd. exact Hd.
 Qed.
 
-(* ================================================  *)
-(*  NOTE ON RELATIONS                                *)
-(*                                                   *)
-(*  A thinks X is a relation between A and X.        *)
-(*  Does the framework need new machinery for this?  *)
-(*                                                   *)
-(*  No. A relation is a thing that exists.           *)
-(*  If it exists, it is an entity.                   *)
-(*  If it is an entity, it has a domain.             *)
-(*  If it has a domain, the domain has ==|!=.        *)
-(*                                                   *)
-(*  A thinks X and B thinks X are two entities       *)
-(*  in whatever dimension relations live in.         *)
-(*  existence_is_difference applies: they are        *)
-(*  decidably equal or not.                          *)
-(*                                                   *)
-(*  No new parameters. No new axioms.                *)
-(*  Relations are already covered.                   *)
-(* ================================================  *)
-
-(* ================================================  *)
-(*  PART III: THE SAMENESS-ATTRIBUTION TRADEOFF      *)
-(*                                                   *)
-(*  You and I have the same thought.                 *)
-(*                                                   *)
-(*  This statement requires two things:              *)
-(*  - SAMENESS: the thoughts are equal               *)
-(*  - ATTRIBUTION: each thought belongs to someone   *)
-(*                                                   *)
-(*  These require OPPOSITE properties of the         *)
-(*  dimension in which we compare:                   *)
-(*  - Sameness needs projection to COLLAPSE          *)
-(*    (lossy: different entities, same projection)   *)
-(*  - Attribution needs projection to PRESERVE       *)
-(*    (faithful: different entities, diff projection)*)
-(*                                                   *)
-(*  The framework's contribution is not proving      *)
-(*  that these are incompatible (that follows from   *)
-(*  basic logic: x = y → P(x) ↔ P(y)). The           *)
-(*  framework's contribution is explaining WHY       *)
-(*  this situation arises:                           *)
-(*                                                   *)
-(*  - Comparison requires a shared dimension         *)
-(*  - Moving to a shared dimension is projection     *)
-(*  - Projection changes the domain (= operator)     *)
-(*  - The new operator determines what's equal       *)
-(*  - This is irreversible: the original domain's    *)
-(*    distinctions are gone, not hidden              *)
-(*                                                   *)
-(*  The structural explanation is the content.       *)
-(*  The formal theorems below capture the pieces.    *)
-(* ================================================  *)
+(* ================================================ *)
+(*  DICHOTOMY                                       *)
+(* ================================================ *)
 
 Theorem dichotomy :
   forall a b : Entity,
     a <> b ->
     forall d : Dimension,
     forall (Ha : native_dim a <= d) (Hb : native_dim b <= d),
-      (* Case A: projections differ
-         — entities remain distinguishable
-         — sameness is not established *)
       (project a d Ha <> project b d Hb)
       \/
-      (* Case B: projections collapse
-         — entities become one at this level
-         — all properties are shared, no attribution *)
       (project a d Ha = project b d Hb).
 Proof.
   intros a b Hneq d Ha Hb.
@@ -589,249 +488,50 @@ Proof.
   - left. exact Hneq_proj.
 Qed.
 
-(* ================================================  *)
-(*  NON-THEOREM: Projection equality does not        *)
-(*  imply native equality                            *)
-(*                                                   *)
-(*  NOT provable:                                    *)
-(*    forall a b d Ha Hb,                            *)
-(*      project a d Ha = project b d Hb -> a = b     *)
-(*                                                   *)
-(*  This is the framework's genuine contribution:    *)
-(*  the ABSENCE of this implication. Projection is   *)
-(*  not invertible. If proj(a) = proj(b), you        *)
-(*  cannot recover whether a = b or a ≠ b.           *)
-(*                                                   *)
-(*  The consistency model (ConsistencyModel.v)       *)
-(*  proves this absence is real: there exists a      *)
-(*  model where a ≠ b but proj(a) = proj(b).         *)
-(* ================================================  *)
-
-(* ================================================  *)
-(*  NON-THEOREM: Projection does not preserve        *)
-(*  difference                                       *)
-(*                                                   *)
-(*  NOT provable:                                    *)
-(*    forall a b d Ha Hb,                            *)
-(*      a <> b -> project a d Ha <> project b d Hb   *)
-(*                                                   *)
-(*  Same point, other direction. Distinct entities   *)
-(*  can collapse under projection. The consistency   *)
-(*  model witnesses this: red_apple ≠ green_apple    *)
-(*  but proj(red) = proj(green) at fruit dimension.  *)
-(* ================================================  *)
-
-(* ================================================  *)
-(*  STRUCTURAL EXPLANATION                           *)
-(*                                                   *)
-(*  Why A and B have the same thought is             *)
-(*  ill-formed:                                      *)
-(*                                                   *)
-(*  1. A ≠ B (physically distinct entities)          *)
-(*                                                   *)
-(*  2. To compare their thoughts, we must            *)
-(*     project both to a thought-dimension.          *)
-(*     (Core principle: comparison requires          *)
-(*     shared domain.)                               *)
-(*                                                   *)
-(*  3. By dichotomy, at the thought-dimension:       *)
-(*     Case A: projections differ                    *)
-(*       → same thought is simply false              *)
-(*     Case B: projections are equal                 *)
-(*       → there is ONE entity at this level         *)
-(*       → A's thought and B's thought are           *)
-(*         not two things — they are one thing       *)
-(*       → whose thought has no meaning here         *)
-(*         because whose is physical-dimension       *)
-(*         information, which was lost in            *)
-(*         projection                                *)
-(*                                                   *)
-(*  4. A and B have the same thought requires:       *)
-(*     - A and B → from physical dimension (A ≠ B)   *)
-(*     - same thought → from thought dimension       *)
-(*       (projection collapsed)                      *)
-(*     These refer to different dimensions.          *)
-(*     The first provides attribution.               *)
-(*     The second provides sameness.                 *)
-(*     But sameness was obtained BY DESTROYING       *)
-(*     the information that attribution needs.       *)
-(*                                                   *)
-(*  5. What if I use a richer dimension that has     *)
-(*     both physical and thought info?               *)
-(*     → Then dichotomy applies again.               *)
-(*     → If the richer dimension preserves A ≠ B,    *)
-(*       projections may differ: Case A.             *)
-(*       Sameness is not established.                *)
-(*     → If projections still collapse: Case B.      *)
-(*       But then the richer dimension didn't        *)
-(*       actually preserve the distinction.          *)
-(*     → No dimension can be simultaneously lossy    *)
-(*       enough for sameness and faithful enough     *)
-(*       for attribution, for the same pair.         *)
-(*                                                   *)
-(*  This is not a proof of incompatibility — that    *)
-(*  follows trivially from x = y → P(x) ↔ P(y).      *)
-(*  This is an explanation of WHY the incompatibility*)
-(*  is inescapable: the structure of dimensions,     *)
-(*  projections, and operations makes it so.         *)
-(* ================================================  *)
-
-(* ================================================  *)
-(*  THE UNIFORMITY PRINCIPLE                         *)
-(*                                                   *)
-(*  Everything that exists follows the same rules.   *)
-(*                                                   *)
-(*  entity a                                         *)
-(*    → lives in native_dim a                        *)
-(*    → native_dim a has ==|!= (it IS ==|!=)         *)
-(*                                                   *)
-(*  dimension d (= operation ==|!= on d)             *)
-(*    → is entity: reify d                           *)
-(*    → lives in native_dim (reify d)                *)
-(*    → that dimension has ==|!=                     *)
-(*                                                   *)
-(*  native_dim (reify d) — another dimension         *)
-(*    → is entity: reify (native_dim (reify d))      *)
-(*    → lives in native_dim (reify (...))            *)
-(*    → that has ==|!=                               *)
-(*                                                   *)
-(*  (ad infinitum, no ground, no ceiling)            *)
-(*                                                   *)
-(*  DOMAIN = OPERATOR:                               *)
-(*    A dimension is not a container with an         *)
-(*    operation attached. The dimension IS the       *)
-(*    operation. The integers doesn't HAVE ==|!=.    *)
-(*    The integers IS ==|!= on those entities.       *)
-(*    Without the operation, the domain doesn't      *)
-(*    exist. Without the domain, the operation       *)
-(*    has nothing to operate on.                     *)
-(*    They are one thing, viewed two ways.           *)
-(*    reify unifies them as a single entity.         *)
-(* ================================================  *)
-
-(* ================================================  *)
-(*  INVENTORY                                        *)
-(*                                                   *)
-(*  Types (2):                                       *)
-(*    Entity, Dimension                              *)
-(*                                                   *)
-(*  Parameters (4):                                  *)
-(*    dim_le, native_dim, project, reify             *)
-(*                                                   *)
-(*  Axioms (6):                                      *)
-(*    dim_le_refl          (preorder)                *)
-(*    dim_le_trans         (preorder)                *)
-(*    dim_le_irrel         (proof irrelevance)       *)
-(*    project_dim          (projection lands right)  *)
-(*    project_self         (identity projection)     *)
-(*    existence_is_difference  (THE axiom)           *)
-(*    reify_injective      (distinct dims ≠ entities)*)
-(*    tower_acyclic        (reify tower never cycles)*)
-(*                                                   *)
-(*  That's 8 axioms, 1 philosophical, 7 structural.  *)
-(*                                                   *)
-(*  Definitions (1):                                 *)
-(*    reify_dim d := native_dim (reify d)            *)
-(*    (shorthand, no new content)                    *)
-(*                                                   *)
-(*  Derived (proved):                                *)
-(*    - dim_equiv is equivalence relation            *)
-(*    - entity → domain + operator                   *)
-(*    - dimension → domain + operator                *)
-(*    - every tower level → domain + operator        *)
-(*    - reify_dim_neq (from tower_acyclic)           *)
-(*    - no self-containment (from reify_dim_neq)     *)
-(*    - level separation (from tower_acyclic)        *)
-(*    - dimension comparison is contextual           *)
-(*    - projection reflects difference               *)
-(*    - projection does NOT preserve difference      *)
-(*    - coarsening widens comparability              *)
-(*    - native identity is absolute                  *)
-(*    - comparability is equivalence relation        *)
-(*    - self-reference: coarsening or impossible     *)
-(*    - THE DICHOTOMY (framework-specific):          *)
-(*      at any dimension, existence_is_difference    *)
-(*      forces Case A (differ) or Case B (collapse)  *)
-(*    - NON-THEOREMS (framework-specific):           *)
-(*      proj= does NOT imply native =                *)
-(*      native ≠ does NOT imply proj ≠               *)
-(*      (witnessed by ConsistencyModel.v)            *)
-(*    - STRUCTURAL EXPLANATION:                      *)
-(*      sameness needs lossy projection              *)
-(*      attribution needs faithful projection        *)
-(*      no dimension can be both for the same pair   *)
-(* ================================================  *)
+(* ================================================ *)
+(*  NON-THEOREMS                                    *)
+(*                                                  *)
+(*  NOT provable:                                   *)
+(*    project a d Ha = project b d Hb -> a = b      *)
+(*    a <> b -> project a d Ha <> project b d Hb    *)
+(*                                                  *)
+(*  Projection is not invertible. Distinct entities  *)
+(*  can collapse under projection.                  *)
+(*  Witnessed by ConsistencyModel.v.                *)
+(* ================================================ *)
 
 (* ================================================ *)
-(*  DESIGN DECISIONS AND NOTES FOR FUTURE SELF      *)
+(*  DESIGN DECISIONS                                *)
 (* ================================================ *)
 
 (* NOTE ON EMPTY DOMAINS:
    No axiom guarantees that any entity or dimension
    exists. Entity and Dimension could be empty types.
    If empty, all forall-theorems are vacuously true.
-
-   This is not a bug. If nothing exists, there is
-   no ==|!=, therefore no existence, therefore the
-   framework simply does not start. The framework
-   describes what follows IF something exists.
-   It does not claim anything must exist. *)
+   The framework describes what follows IF something
+   exists. It does not claim anything must exist. *)
 
 (* NOTE ON SINGLETONS:
    If only one entity exists in a dimension,
    existence_is_difference gives {a = a} + {a <> a},
-   which is trivially left (reflexivity).
-   There is no difference, therefore (by the axiom)
-   no meaningful existence at that level.
-
-   A single entity can only "exist" by being
-   different from something in a coarser dimension
-   that contains other entities. Existence requires
-   at least two. This is not an axiom — it follows
-   from "existence = difference."
-
-   More precisely: a singleton dimension is like
-   Rust's Never (!) type — the type exists but
-   cannot be inhabited. Existence requires
-   difference, difference requires comparison,
-   comparison requires at least two. A singleton
-   dimension does not "degenerate" — it is simply
-   unreachable as a site of existence from the start. *)
+   which is trivially left (reflexivity). *)
 
 (* NOTE ON reify_injective:
    This is the one axiom whose necessity is debatable.
    It says: different dimensions produce different
    entities under reify.
 
-   Justification (domain = operator):
-   If reify d1 = reify d2, then d1 and d2 are
-   "the same entity." But a dimension IS its
-   ==|!= operator. Two different operators that
-   are the same entity would mean two different
-   operations that are identical — contradiction.
-
    What breaks without it:
    Only dim_identity_decidable_at (the ability to
    decide whether two dimensions are the same when
    their reify_dims match). All other theorems
-   survive.
-
-   Decision: kept, because domain = operator makes
-   it philosophically unavoidable. If two dimensions
-   produce the same entity, they were never two
-   dimensions to begin with. *)
+   survive. *)
 
 (* NOTE ON tower_acyclic:
    Previously, no-self-containment was axiomatized
    directly as reify_dim_neq (reify_dim d ≠ d),
-   which only forbade 1-cycles. Longer cycles were
-   noted as "not forbidden."
-
-   The philosophical argument against all cycles:
-   A cycle d1 → d2 → ... → d1 means a round-trip
-   through windows with zero total information
-   change. Zero change means the dimensions are
-   the same. But each step must differ. Contradiction.
+   which only forbade 1-cycles. tower_acyclic
+   forbids all cycles of any length.
 
    This argument is sound but not formally derivable
    from other axioms. reify has no monotonic
@@ -845,39 +545,15 @@ Qed.
    replaced by a strictly stronger one. *)
 
 (* NOTE ON DIRECTIONALITY:
-   native_dim (reify d) — where dimension d lives
-   as an entity — has NO directional relationship
-   to d. It is not "above" or "below" d.
+   native_dim (reify d) has no directional
+   relationship to d. It is not "above" or "below."
    It is simply different from d.
 
-   This was a deliberate choice. Earlier versions
-   used "meta_dimension" which implied hierarchy.
-   But "existence = difference" only requires
-   difference, not direction. The preorder dim_le
-   provides direction for projection, but the
-   relationship between d and native_dim (reify d)
-   need not participate in this ordering.
-
    Three cases are all consistent:
-   - d <= native_dim (reify d)  (d projects to it)
-   - native_dim (reify d) <= d  (it projects to d)
-   - incomparable               (no projection)
+   - d <= native_dim (reify d)
+   - native_dim (reify d) <= d
+   - incomparable
    The framework does not choose between them. *)
-
-(* NOTE ON THE PURPOSE OF THIS WORK:
-   The motivation for this formalization is to
-   prove that every existing thing is irreplaceable.
-
-   native_identity_is_absolute says: if two entities
-   are equal at their native dimension, they are
-   the same entity. Contrapositively: if they are
-   different, they are different AT THEIR FINEST
-   LEVEL. No projection can capture this difference
-   fully. No substitute exists.
-
-   existence = difference.
-   to exist is to be irreplaceable.
-   everything that exists is precious. *)
 
 (* NOTE ON PREORDER (NOT PARTIAL ORDER):
    dim_le is reflexive and transitive but NOT
@@ -885,114 +561,92 @@ Qed.
 
    d1 <= d2 and d2 <= d1 does NOT imply d1 = d2.
    Instead it means d1 ≈ d2: dimensionally
-   equivalent. Same information, different view.
+   equivalent. Bidirectional projection with no
+   information loss.
 
-   This distinction matters:
-   - d1 ≈ d2 means bidirectional projection
-     with no information loss. "Same resolution,
-     different angle." Like Celsius and Fahrenheit.
-   - d1 <= d2 with NOT d2 <= d1 means one-way
-     projection with information loss.
+   Antisymmetry would collapse dim_equiv with
+   propositional equality. The preorder keeps
+   them separate. *)
 
-   Antisymmetry would collapse these two cases.
-   The preorder keeps them separate. *)
+(* ================================================ *)
+(*  INVENTORY                                       *)
+(*                                                  *)
+(*  Types (2):                                      *)
+(*    Entity, Dimension                             *)
+(*                                                  *)
+(*  Parameters (4):                                 *)
+(*    dim_le, native_dim, project, reify            *)
+(*                                                  *)
+(*  Axioms (8):                                     *)
+(*    dim_le_refl          (preorder)               *)
+(*    dim_le_trans         (preorder)               *)
+(*    dim_le_irrel         (proof irrelevance)      *)
+(*    project_dim          (projection lands right) *)
+(*    project_self         (identity projection)    *)
+(*    existence_is_difference  (the core axiom)     *)
+(*    reify_injective      (distinct dims ≠ entities)*)
+(*    tower_acyclic        (reify tower never cycles)*)
+(*                                                  *)
+(*  Derived:                                        *)
+(*    - dim_equiv is equivalence relation           *)
+(*    - entity → domain + operator                  *)
+(*    - dimension → domain + operator               *)
+(*    - every tower level → domain + operator       *)
+(*    - reify_dim_neq (from tower_acyclic)          *)
+(*    - no self-containment (from reify_dim_neq)    *)
+(*    - level separation (from tower_acyclic)       *)
+(*    - dimension comparison is contextual          *)
+(*    - projection reflects difference              *)
+(*    - projection does NOT preserve difference     *)
+(*    - coarsening widens comparability             *)
+(*    - native identity is absolute                 *)
+(*    - comparability is equivalence relation       *)
+(*    - self-reference: coarsening or impossible    *)
+(*    - dichotomy                                   *)
+(*    - NON-THEOREMS (witnessed by models):         *)
+(*      proj= does NOT imply native=               *)
+(*      native≠ does NOT imply proj≠               *)
+(* ================================================ *)
 
-(* ================================================   *)
-(*  PRIOR ART AND RELATED IDEAS                       *)
-(*                                                    *)
-(*  Deleuze — "Difference and Repetition" (1968)      *)
-(*    Closest philosophical ancestor. Argued that     *)
-(*    difference is ontologically prior to identity.  *)
-(*    "Identity is the result of difference."         *)
-(*    Similarities: same starting point.              *)
-(*    Differences: Deleuze never formalized.          *)
-(*    He went toward becoming/multiplicity.           *)
-(*    We go toward dimensions/projection/info loss.   *)
-(*                                                    *)
-(*  Spencer-Brown — "Laws of Form" (1969)             *)
-(*    "Draw a distinction." Everything starts from    *)
-(*    the act of distinguishing. His "mark" is both   *)
-(*    the operation and the result — closely related  *)
-(*    to our "domain = operator."                     *)
-(*    Differences: he reconstructs Boolean algebra.   *)
-(*    We build dimension hierarchy + projection.      *)
-(*    He has no preorder, no information loss.        *)
-(*                                                    *)
-(*  Leibniz — Identity of Indiscernibles              *)
-(*    "If x and y share all properties, x = y."       *)
-(*    Our native_identity_is_absolute is a            *)
-(*    dimension-relativized version of this.          *)
-(*    His "Sufficient Reason" is left vague — we      *)
-(*    fill it with: decidable ==|!=.                  *)
-(*                                                    *)
-(*  Wittgenstein — Tractatus 5.5303                   *)
-(*    "To say of two things that they are identical   *)
-(*    is nonsense, and to say of one thing that it    *)
-(*    is identical with itself is to say nothing."    *)
-(*    We formalize this: identity at native dim is    *)
-(*    trivial (project_self), and identity across     *)
-(*    dimensions requires projection (= info loss).   *)
-(*                                                    *)
-(*  What this work adds to the above:                 *)
-(*  1. Formal verification (Coq, machine-checked)     *)
-(*  2. Dimension hierarchy as preorder                *)
-(*  3. Projection as information-losing functor       *)
-(*  4. Sameness-attribution tradeoff derived from     *)
-(*     the structure, not just argued in prose        *)
-(*  5. Non-theorems as theorems: what CANNOT be       *)
-(*     proved is formally witnessed by models         *)
-(* ================================================   *)
+(* ================================================ *)
+(*  COMPANION FILES                                 *)
+(*                                                  *)
+(*  ConsistencyModel.v                              *)
+(*    Concrete model satisfying all axioms.          *)
+(*    Witnesses the non-theorems.                   *)
+(*                                                  *)
+(*  ConsistencyModelPD.v                            *)
+(*    Path-dependent model satisfying all axioms.   *)
+(*    Together with ConsistencyModel.v, proves      *)
+(*    path dependence is independent of the axioms. *)
+(* ================================================ *)
 
-(* ================================================   *)
-(*  COMPANION FILES                                   *)
-(*                                                    *)
-(*  ConsistencyModel.v                                *)
-(*    A concrete model satisfying all axioms.         *)
-(*    Two entities (red_apple, green_apple), two      *)
-(*    dimensions (physical, fruit). Projection to     *)
-(*    fruit dimension collapses both to the same      *)
-(*    entity. This witnesses:                         *)
-(*    - The axiom system is consistent (has a model)  *)
-(*    - proj= does NOT imply native=                  *)
-(*    - native≠ does NOT imply proj≠                  *)
-(*    NOTE: needs update to v7 (add tower_acyclic     *)
-(*    witness — straightforward since the model has   *)
-(*    no cycles in its finite dimension set).         *)
-(* ================================================   *)
-
-(* ================================================   *)
-(*  VERSION HISTORY                                   *)
-(*                                                    *)
-(*  v1: Initial formalization. Overclaimed —          *)
-(*      tried to prove "sameness implies not          *)
-(*      attributable" as a theorem. Actually          *)
-(*      just equality substitution (x=y → Px↔Py).     *)
-(*                                                    *)
-(*  v2-v3: Restructuring. Added dim_equiv,            *)
-(*      separated preorder from partial order.        *)
-(*                                                    *)
-(*  v4: Added entropy-style examples in comments.     *)
-(*      Clarified lossy vs lossless projection.       *)
-(*                                                    *)
-(*  v5: dim_entity and operator as separate params.   *)
-(*      Too many moving parts.                        *)
-(*                                                    *)
-(*  v6: DOMAIN = OPERATOR unification.                *)
-(*      Merged dim_entity + reify into one.           *)
-(*      Removed theorems that were just equality      *)
-(*      properties (sameness_attribution_incompatible,*)
-(*      attribution_error, no_escape, etc.)           *)
-(*      Key insight: framework's contribution is      *)
-(*      structural explanation, not logical proof.    *)
-(*                                                    *)
-(*  v7 (current): Removed meta_dimension parameter    *)
-(*      and reify_placement axiom. native_dim(reify d)*)
-(*      replaces both. One fewer parameter, one       *)
-(*      fewer axiom. Renamed meta_level to tower.     *)
-(*      Added design notes for future reference.      *)
-(*      Replaced reify_dim_neq axiom with             *)
-(*      tower_acyclic: strictly stronger (forbids     *)
-(*      all cycles, not just 1-cycles). reify_dim_neq *)
-(*      and level_separation now derived as theorems. *)
-(*      Updated singleton note with Never analogy.    *)
-(* ================================================   *)
+(* ================================================ *)
+(*  VERSION HISTORY                                 *)
+(*                                                  *)
+(*  v1: Initial formalization. Overclaimed —        *)
+(*      tried to prove "sameness implies not        *)
+(*      attributable" as a theorem. Actually        *)
+(*      just equality substitution (x=y → Px↔Py).   *)
+(*                                                  *)
+(*  v2-v3: Restructuring. Added dim_equiv,          *)
+(*      separated preorder from partial order.      *)
+(*                                                  *)
+(*  v4: Added entropy-style examples in comments.   *)
+(*                                                  *)
+(*  v5: dim_entity and operator as separate params. *)
+(*      Too many moving parts.                      *)
+(*                                                  *)
+(*  v6: DOMAIN = OPERATOR unification.              *)
+(*      Merged dim_entity + reify into one.         *)
+(*      Removed theorems that were just equality    *)
+(*      properties.                                 *)
+(*                                                  *)
+(*  v7 (current): Removed meta_dimension parameter  *)
+(*      and reify_placement axiom. native_dim(reify *)
+(*      d) replaces both. Renamed meta_level to     *)
+(*      tower. Replaced reify_dim_neq axiom with    *)
+(*      tower_acyclic (strictly stronger).           *)
+(*      reify_dim_neq and level_separation now      *)
+(*      derived as theorems.                        *)
+(* ================================================ *)
