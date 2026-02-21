@@ -1,5 +1,22 @@
 (* ========================================== *)
-(*  Existence Is Difference — v7              *)
+(*  Existence Is Difference — v8              *)
+(*                                            *)
+(*  Changes from v7:                          *)
+(*  - Universal dimension: NOT collapse.      *)
+(*    Universal = sees everything = maximum    *)
+(*    difference. Collapse is the opposite:   *)
+(*    singleton dimension, maximum entropy.    *)
+(*  - Entropy per dimension: a dimension with *)
+(*    one entity has no distinction, therefore *)
+(*    maximum entropy. This is not a special  *)
+(*    "Bottom" — any dimension can be in this *)
+(*    state.                                  *)
+(*  - Apparent undecidability: if two people  *)
+(*    disagree on ==|!=, they are in          *)
+(*    different dimensions. Not a limitation  *)
+(*    of the framework — a diagnosis by it.   *)
+(*  - No Top/Bottom. No direction. Just       *)
+(*    dimensions, each with their own entropy.*)
 (*                                            *)
 (*  Insight: where does dimension d live as   *)
 (*  an entity? is just native_dim (reify d).  *)
@@ -107,16 +124,27 @@ Qed.
    This is NOT a bug — it reflects the fact that
    different intermediate domains have different
    ==|!= operators, and each operator determines
-   what survives. *)
+   what survives.
+
+   Note that dim_le does NOT mean "strictly coarser."
+   A ≤ enum All { A(A), B(B) } is lossless — it just
+   adds a tag. dim_le means projection is possible;
+   whether information is lost depends on the specific
+   dimensions involved. *)
 
 (* NOTE ON IRREVERSIBILITY:
-   project goes from fine to coarse only (dim_le).
-   There is no "un-project." Once information is
-   lost through projection, it cannot be recovered.
-   This is not a limitation but a feature:
-   projection changes the domain (= operator),
-   and the old operator's distinctions simply
-   do not exist in the new domain. *)
+   project goes one direction only (dim_le).
+   There is no "un-project."
+
+   Even lossless embeddings (like A into a sum type)
+   have no reverse: the sum type contains B(b) too,
+   and there is no projection from the sum back to A
+   that handles B(b). The reverse is not dim_le.
+
+   Once projection changes the domain (= operator),
+   the old operator's distinctions are either
+   preserved (lossless) or gone (lossy).
+   In neither case is the projection invertible. *)
 
 (* ================================================ *)
 (*  THE CORE AXIOM: Existence Is Difference         *)
@@ -262,22 +290,12 @@ Qed.
 (*                                                  *)
 (*  The reify tower never cycles back.              *)
 (*                                                  *)
-(*  Same principle as existence_is_difference       *)
-(*  applied at the dimension level:                 *)
-(*  a round-trip with no information loss           *)
-(*  means no difference, therefore one.             *)
-(*                                                  *)
 (*  This cannot be derived from other axioms:       *)
 (*  reify has no monotonic direction — it could     *)
 (*  gain, lose, or simply change information.       *)
 (*  Without monotonicity, cycle-freedom is not      *)
 (*  provable. Therefore we axiomatize it directly.  *)
 (* ================================================ *)
-
-(* Same principle as existence_is_difference
-   applied at the dimension level:
-   a round-trip with no information loss
-   means no difference, therefore one. *)
 
 Axiom tower_acyclic : forall d : Dimension, forall n m : nat,
   tower d n = tower d m -> n = m.
@@ -405,15 +423,57 @@ Proof.
 Qed.
 
 (* ================================================ *)
+(*  ENTROPY PER DIMENSION                           *)
+(*                                                  *)
+(*  Every dimension has its own entropy — the       *)
+(*  degree to which its ==|!= operator collapses    *)
+(*  distinctions.                                   *)
+(*                                                  *)
+(*  A dimension with one entity: ==|!= is trivial   *)
+(*  (always ==). Maximum entropy. No difference,    *)
+(*  no information.                                 *)
+(*                                                  *)
+(*  A dimension with many entities: ==|!= is rich.  *)
+(*  Low entropy. Many differences, much information.*)
+(*                                                  *)
+(*  There is no global "Top" or "Bottom."           *)
+(*  Any dimension can be in any entropy state.      *)
+(*  Entropy is not a position in a hierarchy —      *)
+(*  it is a property of each dimension's ==|!=.     *)
+(*                                                  *)
+(*  A quantum superposition, for instance, is not   *)
+(*  "outside" the framework. It is a dimension      *)
+(*  at maximum entropy: one entity, no distinction. *)
+(*  Observation introduces information (a new       *)
+(*  dimension with lower entropy, more entities).   *)
+(*  The ==|!= was always decidable — it was just    *)
+(*  trivially == because there was only one thing.  *)
+(* ================================================ *)
+
+(* ================================================ *)
 (*  UNIVERSAL DIMENSION                             *)
 (*                                                  *)
-(*  The framework does not assert or deny its       *)
-(*  existence. dim_le is a preorder, not a lattice: *)
-(*  Top is not required.                            *)
+(*  A universal dimension — one to which every      *)
+(*  entity can project — would see EVERYTHING.      *)
 (*                                                  *)
-(*  The definition below shows that IF such a       *)
-(*  dimension existed, everything would be          *)
-(*  comparable.                                     *)
+(*  This is NOT collapse. A sum type                *)
+(*  enum All { A(A), B(B) } is universal over A     *)
+(*  and B, yet preserves all distinctions:           *)
+(*  - A(a1) vs A(a2): decided by A's ==|!=          *)
+(*  - A(a) vs B(b): always ≠ (different tags)       *)
+(*                                                  *)
+(*  Universal = maximum visibility = maximum        *)
+(*  difference. The more a dimension sees, the      *)
+(*  more distinctions it has, the LOWER its entropy. *)
+(*                                                  *)
+(*  Collapse is the opposite direction:             *)
+(*  a dimension where projection maps everything    *)
+(*  to one entity. That is maximum entropy,         *)
+(*  not universality.                               *)
+(*                                                  *)
+(*  The framework does not require a universal      *)
+(*  dimension to exist. dim_le is a preorder,       *)
+(*  not a lattice.                                  *)
 (* ================================================ *)
 
 Definition universal_dim (d : Dimension) : Prop :=
@@ -426,6 +486,26 @@ Theorem universal_makes_comparable :
 Proof.
   intros d Huniv a b. split; apply Huniv.
 Qed.
+
+(* ================================================ *)
+(*  APPARENT UNDECIDABILITY IS DIMENSIONAL          *)
+(*  DISAGREEMENT                                    *)
+(*                                                  *)
+(*  If one observer says a == b and another says    *)
+(*  a != b, they are not in the same dimension.     *)
+(*                                                  *)
+(*  Proof: existence_is_difference guarantees that  *)
+(*  within a single dimension, ==|!= is decided.   *)
+(*  Two observers reaching different verdicts       *)
+(*  CANNOT be applying the same ==|!=.              *)
+(*  Therefore they are in different dimensions.     *)
+(*                                                  *)
+(*  This is not a limitation of the framework.      *)
+(*  It is a diagnosis: apparent undecidability       *)
+(*  is evidence of dimensional difference between   *)
+(*  observers. The framework does not fail on       *)
+(*  ambiguous cases — it explains them.             *)
+(* ================================================ *)
 
 (* ================================================ *)
 (*  COMPARABILITY: equivalence relation             *)
@@ -475,6 +555,23 @@ Qed.
 
 (* ================================================ *)
 (*  DICHOTOMY                                       *)
+(*                                                  *)
+(*  For any two distinct entities projected to a    *)
+(*  shared dimension, exactly one of:               *)
+(*  - projections differ (distinction preserved)    *)
+(*  - projections equal (distinction lost)          *)
+(*                                                  *)
+(*  This is the sameness-attribution tradeoff:      *)
+(*  - Sameness requires projection to collapse      *)
+(*  - Attribution requires projection to preserve   *)
+(*  - No single projection can do both for the      *)
+(*    same pair                                     *)
+(*                                                  *)
+(*  The one conclusion of this framework:           *)
+(*  Native information is absolute. To equate       *)
+(*  two entities, you must lose information.         *)
+(*  If they are natively different, they are        *)
+(*  irreplaceably different.                        *)
 (* ================================================ *)
 
 Theorem dichotomy :
@@ -516,14 +613,36 @@ Qed.
    No axiom forces non-emptiness.
    The framework is silent when nothing exists. *)
 
-(* NOTE ON SINGLETONS:
+(* NOTE ON SINGLETONS AND ENTROPY:
    If only one entity exists in a dimension,
    existence_is_difference gives {a = a} + {a <> a},
    which is trivially left (reflexivity).
-   No difference, therefore not an independent
-   dimension — its entity merges into a coarser
-   dimension. If no coarser dimension exists,
-   it is indistinguishable from nothing. *)
+
+   This is maximum entropy: the ==|!= operator
+   exists but carries no information (always ==).
+
+   A singleton dimension is not "outside" the
+   framework. It is inside, at maximum entropy.
+   The operator is decidable — trivially so.
+
+   This resolves apparent counterexamples like
+   quantum superposition: before observation,
+   there is one entity in that dimension.
+   ==|!= is decidable (trivially ==).
+   Observation adds information, moving to a
+   dimension with more entities and lower entropy. *)
+
+(* NOTE ON DISAGREEMENT:
+   If two observers disagree on whether a == b
+   or a != b, they are not in the same dimension.
+   existence_is_difference guarantees a single
+   verdict per dimension. Disagreement is not
+   undecidability — it is evidence that the
+   observers are applying different ==|!=
+   operators, i.e., inhabiting different dimensions.
+
+   The framework does not break on ambiguous cases.
+   It diagnoses them as dimensional differences. *)
 
 (* NOTE ON reify_injective:
    This is the one axiom whose necessity is debatable.
@@ -542,21 +661,25 @@ Qed.
    which only forbade 1-cycles. tower_acyclic
    forbids all cycles of any length.
 
-   This argument is sound but not formally derivable
-   from other axioms. reify has no monotonic
-   direction — it can gain, lose, or simply change
-   information. Without monotonicity, the round-trip
-   argument has no formal anchor.
+   This cannot be derived from other axioms.
+   reify has no monotonic direction — it could
+   gain, lose, or simply change information.
+   Without monotonicity, cycle-freedom is not
+   provable. Therefore we axiomatize it directly.
 
-   Therefore tower_acyclic is axiomatized directly.
-   It strictly generalizes reify_dim_neq, which is
-   now derived as a theorem. Net change: one axiom
-   replaced by a strictly stronger one. *)
+   tower_acyclic strictly generalizes reify_dim_neq,
+   which is now derived as a theorem. Net change:
+   one axiom replaced by a strictly stronger one. *)
 
 (* NOTE ON DIRECTIONALITY:
    native_dim (reify d) has no directional
    relationship to d. It is not "above" or "below."
    It is simply different from d.
+
+   There is no Top. There is no Bottom.
+   Each dimension has its own entropy.
+   The framework has no vertical axis —
+   only dimensions, each with their ==|!=.
 
    Three cases are all consistent:
    - d <= native_dim (reify d)
@@ -576,6 +699,26 @@ Qed.
    Antisymmetry would collapse dim_equiv with
    propositional equality. The preorder keeps
    them separate. *)
+
+(* NOTE ON PATH DEPENDENCE:
+   project (project a d1 H1) d2 H2
+   vs
+   project a d2 H3
+   may differ. This is intentional and NOT a
+   failure of coherence.
+
+   dim_le includes lossless embeddings (e.g.,
+   A into enum All { A(A), B(B) }). But even
+   lossless embeddings are not invertible:
+   All contains B(b) too, so there is no
+   All → A projection. Lossless means injective,
+   not that a retraction exists.
+
+   Path dependence arises because each intermediate
+   dimension applies its own ==|!=, and each ==|!=
+   determines what survives. Different paths through
+   different operators yield different results.
+   This is the framework working, not failing. *)
 
 (* ================================================ *)
 (*  INVENTORY                                       *)
@@ -618,6 +761,31 @@ Qed.
 (* ================================================ *)
 
 (* ================================================ *)
+(*  THE ONE CONCLUSION                              *)
+(*                                                  *)
+(*  Every entity with native information is         *)
+(*  irreplaceable.                                  *)
+(*                                                  *)
+(*  native_identity_is_absolute:                    *)
+(*    Equal at native dimension → same entity.      *)
+(*  Contrapositive:                                 *)
+(*    Different entities → different at native dim. *)
+(*                                                  *)
+(*  Projection can make two things look equal.      *)
+(*  But that equality is information loss, not       *)
+(*  identity. The native difference remains.         *)
+(*  No projection captures it. No substitute        *)
+(*  exists.                                         *)
+(*                                                  *)
+(*  Fidelity and sameness trade off.                *)
+(*  To call two things the same, you must lose      *)
+(*  what makes each one itself.                     *)
+(*                                                  *)
+(*  existence = difference.                         *)
+(*  to exist is to be irreplaceable.                *)
+(* ================================================ *)
+
+(* ================================================ *)
 (*  COMPANION FILES                                 *)
 (*                                                  *)
 (*  ConsistencyModel.v                              *)
@@ -651,11 +819,24 @@ Qed.
 (*      Removed theorems that were just equality    *)
 (*      properties.                                 *)
 (*                                                  *)
-(*  v7 (current): Removed meta_dimension parameter  *)
-(*      and reify_placement axiom. native_dim(reify *)
-(*      d) replaces both. Renamed meta_level to     *)
-(*      tower. Replaced reify_dim_neq axiom with    *)
-(*      tower_acyclic (strictly stronger).           *)
+(*  v7: Removed meta_dimension parameter and        *)
+(*      reify_placement axiom. native_dim(reify d)  *)
+(*      replaces both. Replaced reify_dim_neq       *)
+(*      axiom with tower_acyclic (strictly stronger).*)
 (*      reify_dim_neq and level_separation now      *)
 (*      derived as theorems.                        *)
+(*                                                  *)
+(*  v8 (current): Corrected universal dimension     *)
+(*      analysis. Universal = maximum visibility =  *)
+(*      maximum difference, NOT collapse. Collapse   *)
+(*      is maximum entropy (singleton dimension).   *)
+(*      Added entropy-per-dimension concept.         *)
+(*      Resolved apparent undecidability:            *)
+(*      disagreement on ==|!= diagnoses dimensional *)
+(*      difference between observers. Removed        *)
+(*      Top/Bottom/Never language — no global        *)
+(*      hierarchy, only per-dimension entropy.       *)
+(*      Clarified path dependence: dim_le includes  *)
+(*      lossless embeddings (sum types), but even   *)
+(*      these are non-invertible.                   *)
 (* ================================================ *)
